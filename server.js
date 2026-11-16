@@ -6,6 +6,7 @@ const { registrarUsuario } = require('./auditoria/registro');
 const { iniciarSesion } = require('./auditoria/login');
 const { protegerContrasena } = require('./auditoria/seguridad');
 const amistades = require('./amistades');
+const publicaciones = require('./publicaciones');
 
 const PORT = process.env.PORT || 3000;
 const DIR = path.join(__dirname, 'data'), PUB = path.join(__dirname, 'public');
@@ -76,20 +77,10 @@ const estado = () => ({
 // ---- Acciones sociales (Cris)
 function accion(me, b) {
     switch (b.tipo) {
+        // Publicaciones: la lógica vive en publicaciones.js (S2-1)
         case 'publicar': {
-            const texto = limpio(b.texto, 500); 
-            if (!texto) return 'Escribe algo antes de publicar.';
-            if (b.clubId) { 
-                const c = C(b.clubId); 
-                if (!c || !c.miembros.includes(me)) return 'Debes ser miembro del club.'; 
-            }
-            DB.publicaciones.unshift({ 
-                id: uid(), 
-                autor: me, 
-                clubId: b.clubId || null, 
-                texto, 
-                fecha: Date.now() 
-            }); 
+            const r = publicaciones.publicar(DB, me, b);
+            if (!r.ok) return r.error;
             break;
         }
         // Amistades: la lógica vive en amistades.js; aquí solo se traduce
