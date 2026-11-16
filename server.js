@@ -20,11 +20,31 @@ for (const k of K) {
     catch { DB[k] = []; fs.writeFileSync(f, '[]'); }
 }
 
+// Último error de persistencia. accion() llama a guardar() y no puede recoger
+// su resultado (no se toca su lógica), así que el motivo se guarda aquí y lo
+// consulta el enrutador para responderle al cliente en español.
+let errorGuardado = null;
+
+// Escritura atómica en dos fases: primero se escriben TODOS los .tmp y luego
+// se renombran todos. Si algo falla en medio, se borran los temporales y no se
+// renombra ninguno: una operación fallida no daña los datos ya guardados.
 function guardar() {
-    for (const k of K) {
-        const f = path.join(DIR, k + '.json');
-        fs.writeFileSync(f + '.tmp', JSON.stringify(DB[k], null, 2));
-        fs.renameSync(f + '.tmp', f);
+    errorGuardado = null;
+    const temporales = [];
+    try {
+        for (const k of K) {
+            const f = path.join(DIR, k + '.json');
+            fs.writeFileSync(f + '.tmp', JSON.stringify(DB[k], null, 2));
+            temporales.push(f);
+        }
+        for (const f of temporales) fs.renameSync(f + '.tmp', f);
+        return null;
+    } catch (e) {
+        // Limpieza de temporales; el detalle real solo va al log del servidor.
+        for (const f of temporales) { try { fs.unlinkSync(f + '.tmp'); } catch { /* ya no estaba */ } }
+        console.error('No se pudieron guardar los datos:', e && e.message);
+        errorGuardado = 'No se pudieron guardar los datos. Inténtalo de nuevo.';
+        return errorGuardado;
     }
 }
 
@@ -256,15 +276,17 @@ http.createServer((req, res) => {
         catch { return json(res, 400, { error: 'JSON inválido' }); }
         
         const url = req.url;
+        errorGuardado = null; // estado limpio de guardado para esta petición
         
         if (url === '/api/seed') { 
-            const e = seed(); 
+            const e = seed() || errorGuardado; 
             return e ? json(res, 400, { error: e }) : json(res, 200, { ok: true }); 
         }
         
         if (url === '/api/registro') {
             const r = registrarUsuario(DB, b, guardar);
             if (r.error) return json(res, r.codigo || 400, { error: r.error });
+            if (errorGuardado) return json(res, 500, { error: errorGuardado });
             const ses = nuevaSesion(r.usuario.id);
             return json(res, 200, ses);
         }
@@ -282,7 +304,10 @@ http.createServer((req, res) => {
         if (url === '/api/estado') return json(res, 200, estado());
         if (url === '/api/accion') { 
             const e = accion(me, b); 
-            return e ? json(res, 400, { error: e }) : json(res, 200, { ok: true }); 
+            if (e) return json(res, 400, { error: e });
+            // guardar() falló dentro de accion(): aviso genérico, sin tocar accion()
+            if (errorGuardado) return json(res, 500, { error: errorGuardado });
+            return json(res, 200, { ok: true }); 
         }
         if (url === '/api/grafo') return json(res, 200, grafo());
         
