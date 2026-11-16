@@ -7,11 +7,11 @@ const { iniciarSesion } = require('./auditoria/login');
 const { protegerContrasena } = require('./auditoria/seguridad');
 const amistades = require('./amistades');
 const publicaciones = require('./publicaciones');
+const clubes = require('./clubes');
 
 const PORT = process.env.PORT || 3000;
 const DIR = path.join(__dirname, 'data'), PUB = path.join(__dirname, 'public');
 const K = ['usuarios', 'clubes', 'publicaciones', 'amistades'];
-const CATS = ['Lectura', 'Fotografía', 'Manualidades', 'Videojuegos', 'Deportes', 'Otro'];
 
 // ---- Persistencia: carga al iniciar, guarda tras cada cambio (escritura atómica)
 const DB = {};
@@ -58,12 +58,9 @@ const nuevaSesion = id => {
     return { token: t, id }; 
 };
 
-// ---- Helpers de dominio
-const U = id => DB.usuarios.find(u => u.id === id);
-const C = id => DB.clubes.find(c => c.id === id);
-const rel = (a, b) => DB.amistades.find(x => (x.de === a && x.a === b) || (x.de === b && x.a === a));
+// ---- Helper de dominio: lo usa seed() para crear ids de ejemplo.
+// (U, C, rel, limpio y CATS se movieron a los módulos que los usan.)
 const uid = () => crypto.randomBytes(4).toString('hex');
-const limpio = (s, n) => String(s || '').trim().slice(0, n);
 
 // Lo que ve el Frontend por /api/estado. Sin la identificación (cédula): la
 // interfaz no la muestra y no hace falta exponerla a todos los usuarios.
@@ -95,23 +92,15 @@ function accion(me, b) {
             if (!r.ok) return r.error;
             break;
         }
+        // Clubes: la lógica vive en clubes.js (S2-2)
         case 'crear-club': {
-            const nombre = limpio(b.nombre, 60); 
-            if (!nombre) return 'El club necesita un nombre.';
-            DB.clubes.push({ 
-                id: uid(), 
-                nombre, 
-                categoria: CATS.includes(b.categoria) ? b.categoria : 'Otro', 
-                descripcion: limpio(b.descripcion, 140), 
-                miembros: [me], 
-                creador: me 
-            }); 
+            const r = clubes.crearClub(DB, me, b);
+            if (!r.ok) return r.error;
             break;
         }
         case 'toggle-club': {
-            const c = C(b.id); 
-            if (!c) return 'Club inexistente.';
-            c.miembros = c.miembros.includes(me) ? c.miembros.filter(m => m !== me) : [...c.miembros, me]; 
+            const r = clubes.toggleClub(DB, me, b);
+            if (!r.ok) return r.error;
             break;
         }
         default: return 'Acción desconocida.';
