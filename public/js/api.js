@@ -6,7 +6,7 @@
      POST /api/registro  { identificacion, nombre, usuario, pass } -> { token, id }
      POST /api/login     { usuario, pass }                         -> { token, id }
      POST /api/estado    {}                                        -> { usuarios, clubes, publicaciones, amistades }
-     POST /api/accion    { tipo: 'publicar'|'solicitar'|'aceptar'|'crear-club'|'toggle-club', ... } -> { ok } | { error }
+     POST /api/accion    { tipo: 'publicar'|'solicitar'|'aceptar'|'rechazar'|'cancelar'|'crear-club'|'toggle-club', ... } -> { ok } | { error }
      POST /api/seed      {}   (solo desarrollo: carga datos de ejemplo)
    Autenticación: cabecera  Authorization: Bearer <token>
    Errores: el servidor responde { error: "mensaje" }
