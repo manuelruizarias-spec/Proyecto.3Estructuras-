@@ -180,17 +180,74 @@ const json = (res, code, obj) => {
     res.end(JSON.stringify(obj)); 
 };
 
-http.createServer((req, res) => {
-    if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
-        return fs.readFile(path.join(PUB, 'index.html'), (e, d) => {
-            if (e) return json(res, 500, { error: 'Falta public/index.html' });
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); 
-            res.end(d);
-        });
+// ---- Archivos estáticos: se sirve TODO lo que esté dentro de public/ (cualquier
+// subruta). Fuera de public/ no se lee nada: así server.js, data/ y auditoria/
+// quedan inaccesibles por HTTP, porque su ruta resuelta cae fuera de la base.
+const MIME = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.txt': 'text/plain; charset=utf-8'
+};
+
+// Devuelve true si la petición quedó atendida (con error incluido) y false
+// si el método no corresponde a un archivo estático.
+function estatico(req, res, url) {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return false;
+
+    const ruta = url.split('?')[0].split('#')[0];
+    let decodificada;
+    try { decodificada = decodeURIComponent(ruta); }
+    catch { json(res, 400, { error: 'Ruta no válida.' }); return true; }
+
+    // La raíz y /index.html sirven la página principal
+    const relativa = (decodificada === '/' || decodificada === '/index.html')
+        ? 'index.html'
+        : decodificada.replace(/^\/+/, '');
+
+    // Bloqueo de traversal: sin segmentos "." ni "..", sin bytes nulos y sin
+    // rutas absolutas (también atrapa lo codificado como %2e%2e o %2f).
+    const segmentos = relativa.split('/');
+    if (!relativa || path.isAbsolute(relativa) || relativa.includes('\0') ||
+        segmentos.some(s => s === '.' || s === '..')) {
+        json(res, 403, { error: 'Ruta no permitida.' });
+        return true;
     }
-    
-    if (!req.url.startsWith('/api/')) return json(res, 404, { error: 'No encontrado' });
-    
+
+    // Defensa doble: aunque pase lo anterior, la ruta resolvida debe seguir
+    // dentro de public/ (resuelve ataques con separadores o símbolos raros).
+    const base = path.resolve(PUB);
+    const absoluto = path.resolve(base, segmentos.join('/'));
+    if (absoluto !== base && !absoluto.startsWith(base + path.sep)) {
+        json(res, 403, { error: 'Ruta no permitida.' });
+        return true;
+    }
+
+    fs.readFile(absoluto, (e, d) => {
+        if (e) return json(res, 404, { error: 'No encontrado.' }); // directorios y ausentes
+        const tipo = MIME[path.extname(absoluto).toLowerCase()] || 'application/octet-stream';
+        res.writeHead(200, { 'Content-Type': tipo, 'X-Content-Type-Options': 'nosniff' });
+        res.end(req.method === 'HEAD' ? undefined : d);
+    });
+    return true;
+}
+
+http.createServer((req, res) => {
+    // Todo lo que no sea /api/ se resuelve como archivo estático dentro de public/
+    if (!req.url.startsWith('/api/')) {
+        if (estatico(req, res, req.url)) return;
+        return json(res, 405, { error: 'Método no permitido.' });
+    }
+
     let raw = '';
     req.on('data', c => { raw += c; if (raw.length > 1e5) req.destroy(); });
     req.on('end', () => {
