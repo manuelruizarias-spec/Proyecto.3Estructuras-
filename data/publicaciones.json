@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": "e2153db2",
+    "autor": "ana",
+    "clubId": null,
+    "texto": "¡Bienvenidos a UNA Connect!",
+    "fecha": 1794848062158
+  },
+  {
+    "id": "8f5a28ed",
+    "autor": "luis",
+    "clubId": null,
+    "texto": "¿Quién va a la feria de clubes?",
+    "fecha": 1794851662158
+  },
+  {
+    "id": "28a48cb7",
+    "autor": "marta",
+    "clubId": "c1",
+    "texto": "Este mes leemos Cien años de soledad.",
+    "fecha": 1794853462158
+  }
+]

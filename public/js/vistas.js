@@ -156,8 +156,11 @@ function vistaTablonGeneral() {
   ${pubs.length ? pubs.map(tarjetaPublicacion).join('') : estadoVacio('wall', 'Sin publicaciones todavía', 'Sé la primera persona en escribir en el tablón de tus clubes.')}</div>`;
 }
 function vistaCrearClub() {
+  // El límite va en el input (maxlength="60", el mismo que valida el
+  // servidor): el helper campo() no acepta largos, así que este campo se
+  // escribe aquí a mano con el mismo marcado que genera campo().
   return `<div class="card" style="max-width:560px"><h2 style="margin-bottom:14px">Crea tu club</h2><form id="formClub" novalidate><div id="avisoClub"></div>
-  ${campo('cn', 'Nombre del club', 'text', 'Ej. Cine Foro UNA', 'off')}
+  <div class="field"><label for="cn">Nombre del club</label><input class="in" id="cn" name="cn" type="text" maxlength="60" placeholder="Ej. Cine Foro UNA" autocomplete="off"><div class="err" id="e_cn" hidden></div></div>
   <div class="field"><label for="cc">Categoría</label><select class="in" id="cc">${[...CATEGORIAS, 'Otro'].map(c => `<option>${c}</option>`).join('')}</select></div>
   <div class="field"><label for="cds">Descripción</label><textarea class="in" id="cds" rows="3" maxlength="140" placeholder="¿De qué trata y a quién invitas?"></textarea><span class="small mute">Máximo 140 caracteres</span></div>
   <button class="btn" id="btnClub">${ic('plus')}Crear club</button></form></div>`;
