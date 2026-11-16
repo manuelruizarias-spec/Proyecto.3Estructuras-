@@ -95,8 +95,8 @@ async function crearClub() {
   const r = await conCarga(document.getElementById('btnClub'), 'Creando…', () => Api.accion({ tipo: 'crear-club', nombre, categoria: document.getElementById('cc').value, descripcion: valorCampo('cds') }));
   if (!r.ok) { document.getElementById('avisoClub').innerHTML = bannerError(r.error); return; }
   await refrescar();
-  const nuevo = E.d.clubes.filter(c => c.creador === E.yo && c.nombre === nombre).pop(); // el servidor no devuelve el id del club creado
-  E.club = nuevo ? nuevo.id : null; E.ctab = 'explorar'; pintar(); toast('Club creado');
+  E.club = r.datos.id || null; // el servidor devuelve el id del club creado
+  E.ctab = 'explorar'; pintar(); toast('Club creado');
 }
 
 // ---------- Clics (delegación de eventos) ----------

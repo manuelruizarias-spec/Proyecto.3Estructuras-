@@ -246,6 +246,9 @@ http.createServer((req, res) => {
             if (!r.ok) return json(res, r.codigo || 400, { error: r.error });
             const e = guardar();                      // solo se persiste si la acción fue válida
             if (e) return json(res, 500, { error: e });
+            // crear-club informa además el id del club creado, para que la
+            // interfaz lo abra directamente sin tener que adivinarlo.
+            if (b.tipo === 'crear-club') return json(res, 200, { ok: true, id: r.datos.id });
             return json(res, 200, { ok: true });
         }
         if (url === '/api/grafo') {
