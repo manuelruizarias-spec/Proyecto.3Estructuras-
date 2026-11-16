@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": "ana",
+    "identificacion": "118230001",
+    "nombre": "Ana",
+    "usuario": "ana",
+    "hash": "fd48f6aa69db248dea184bb0015619d6:6c691828102992cc960a665c055760347a4c65ca4afc4a9104428119944b4024"
+  },
+  {
+    "id": "luis",
+    "identificacion": "118230002",
+    "nombre": "Luis",
+    "usuario": "luis",
+    "hash": "fd48f6aa69db248dea184bb0015619d6:6c691828102992cc960a665c055760347a4c65ca4afc4a9104428119944b4024"
+  },
+  {
+    "id": "marta",
+    "identificacion": "118230003",
+    "nombre": "Marta",
+    "usuario": "marta",
+    "hash": "fd48f6aa69db248dea184bb0015619d6:6c691828102992cc960a665c055760347a4c65ca4afc4a9104428119944b4024"
+  },
+  {
+    "id": "diego",
+    "identificacion": "118230004",
+    "nombre": "Diego",
+    "usuario": "diego",
+    "hash": "fd48f6aa69db248dea184bb0015619d6:6c691828102992cc960a665c055760347a4c65ca4afc4a9104428119944b4024"
+  },
+  {
+    "id": "cga",
+    "identificacion": "208930455",
+    "nombre": "Cristofer farcia",
+    "usuario": "cga",
+    "hash": "3b3351cffc0d4318dfce1c4ddd98d8c9:22decae7773c3e04f3727773badd73f255d38cab0d774f55660365c111bcc2bd"
+  }
+]
