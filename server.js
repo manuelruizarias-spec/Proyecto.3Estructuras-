@@ -8,6 +8,7 @@ const { protegerContrasena } = require('./auditoria/seguridad');
 const amistades = require('./amistades');
 const publicaciones = require('./publicaciones');
 const clubes = require('./clubes');
+const grafo = require('./grafo');
 
 const PORT = process.env.PORT || 3000;
 const DIR = path.join(__dirname, 'data'), PUB = path.join(__dirname, 'public');
@@ -109,35 +110,8 @@ function accion(me, b) {
     return null;
 }
 
-// ---- Grafo: Lista de adyacencia (Cris - S3-1)
-function grafo() {
-    const nodos = [];
-    DB.usuarios.forEach(u => nodos.push({ id: 'u:' + u.id, etiqueta: u.nombre, tipo: 'usuario' }));
-    DB.clubes.forEach(c => nodos.push({ id: 'c:' + c.id, etiqueta: c.nombre, tipo: 'club' }));
-
-    const aristas = [];
-    const vistas = new Set();
-    
-    DB.amistades.filter(a => a.estado === 'aceptada').forEach(a => {
-        const clave = ['u:' + a.de, 'u:' + a.a].sort().join('|');
-        if (vistas.has(clave)) return;
-        vistas.add(clave);
-        aristas.push({ a: 'u:' + a.de, b: 'u:' + a.a, tipo: 'amistad' });
-    });
-    
-    DB.clubes.forEach(c => c.miembros.forEach(m => {
-        aristas.push({ a: 'u:' + m, b: 'c:' + c.id, tipo: 'pertenencia' });
-    }));
-
-    const lista_adyacencia = {};
-    nodos.forEach(n => { lista_adyacencia[n.id] = []; });
-    aristas.forEach(e => {
-        lista_adyacencia[e.a].push({ vecino: e.b, tipo: e.tipo });
-        lista_adyacencia[e.b].push({ vecino: e.a, tipo: e.tipo });
-    });
-
-    return { nodos, aristas, lista_adyacencia };
-}
+// ---- Grafo: la construcción de la lista de adyacencia vive en grafo.js (S3-1);
+// aquí server.js solo lo pide y traduce su respuesta.
 
 // ---- Datos semilla
 // Solo se siembra si data/usuarios.json está vacío (y la memoria también):
@@ -296,7 +270,10 @@ http.createServer((req, res) => {
             if (errorGuardado) return json(res, 500, { error: errorGuardado });
             return json(res, 200, { ok: true }); 
         }
-        if (url === '/api/grafo') return json(res, 200, grafo());
+        if (url === '/api/grafo') {
+            const g = grafo.construir(DB);
+            return g.ok ? json(res, 200, g.datos) : json(res, g.codigo || 400, { error: g.error });
+        }
         
         json(res, 404, { error: 'No encontrado' });
     });
