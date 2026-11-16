@@ -1,0 +1,25 @@
+{
+  "name": "una-connect",
+  "version": "1.0.0",
+  "description": "Red social universitaria UNA Connect - Proyecto 3 Estructuras de Datos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "una",
+    "connect",
+    "scrum",
+    "estructuras-de-datos"
+  ],
+  "author": "Manuel · Cris · Scarlet",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
