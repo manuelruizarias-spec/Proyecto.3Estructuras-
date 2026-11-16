@@ -110,6 +110,8 @@ document.addEventListener('click', async e => {
   else if (a === 'tab') { E.tab = id; E.club = null; E.borrador = ''; pintar(); window.scrollTo(0, 0); }
   else if (a === 'solicitar') { const r = await ejecutar({ tipo: 'solicitar', a: id }, 'Solicitud enviada a ' + nombreDe(id)); }
   else if (a === 'aceptar') await ejecutar({ tipo: 'aceptar', de: id }, 'Ahora eres amigo de ' + nombreDe(id));
+  else if (a === 'rechazar') await ejecutar({ tipo: 'rechazar', de: id }, 'Solicitud de ' + nombreDe(id) + ' rechazada');
+  else if (a === 'cancelar') await ejecutar({ tipo: 'cancelar', a: id }, 'Solicitud cancelada a ' + nombreDe(id));
   else if (a === 'publicar') publicar(id);
   else if (a === 'ctab') { E.ctab = id; E.club = null; E.borrador = ''; pintar(); }
   else if (a === 'categoria') { E.cat = id; pintar(); }

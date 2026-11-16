@@ -79,6 +79,8 @@ const estado = () => ({
 const ACCIONES = {
     'solicitar': amistades.solicitar,
     'aceptar': amistades.aceptar,
+    'rechazar': amistades.rechazar,   // receptor elimina la solicitud pendiente
+    'cancelar': amistades.cancelar,   // emisor la retira
     'publicar': publicaciones.publicar,
     'crear-club': clubes.crearClub,
     'toggle-club': clubes.toggleClub

@@ -80,7 +80,7 @@ function vistaAmigos() {
   <div class="search"><span>${ic('search')}</span><input class="in" id="buscador" type="search" placeholder="Buscar por nombre o usuario" value="${esc(E.q)}" aria-label="Buscar estudiantes"></div>
   <div id="resultados" class="card" style="margin-top:12px">${htmlResultados()}</div>
   <div class="cols" style="margin-top:16px"><div><div class="sec-t"><h2>Solicitudes recibidas ${recibidas.length ? `<span class="pill">${recibidas.length}</span>` : ''}</h2></div>
-  <div class="card">${recibidas.length ? recibidas.map(x => `<div class="person">${avatar(x.de, nombreDe(x.de))}<div class="grow"><div class="nm">${esc(nombreDe(x.de))}</div><div class="small mute">@${esc(x.de)} · quiere ser tu amigo</div></div><button class="btn sm" data-act="aceptar" data-id="${esc(x.de)}">${ic('check')}Aceptar</button></div>`).join('') : estadoVacio('users', 'Sin solicitudes pendientes', 'Cuando alguien quiera ser tu amigo, la solicitud aparecerá aquí.')}</div></div>
+  <div class="card">${recibidas.length ? recibidas.map(x => `<div class="person">${avatar(x.de, nombreDe(x.de))}<div class="grow"><div class="nm">${esc(nombreDe(x.de))}</div><div class="small mute">@${esc(x.de)} · quiere ser tu amigo</div></div><button class="btn sm" data-act="aceptar" data-id="${esc(x.de)}">${ic('check')}Aceptar</button><button class="btn sm ghost" data-act="rechazar" data-id="${esc(x.de)}">Rechazar</button></div>`).join('') : estadoVacio('users', 'Sin solicitudes pendientes', 'Cuando alguien quiera ser tu amigo, la solicitud aparecerá aquí.')}</div></div>
   <div><div class="sec-t"><h2>Mis amigos <span class="pill">${amigos.length}</span></h2></div>
   <div class="card">${amigos.length ? amigos.map(i => `<div class="person">${avatar(i, nombreDe(i))}<div class="grow"><div class="nm">${esc(nombreDe(i))}</div><div class="small mute">@${esc(i)}</div></div><span class="pill ok">Amigos</span></div>`).join('') : estadoVacio('users', 'Todavía no tienes amigos', 'Busca a tus compañeros por nombre y envíales una solicitud.')}</div></div></div>`;
 }
@@ -95,7 +95,9 @@ function filaEstudiante(u) {
   const r = relacion(E.yo, u.id); let accion;
   if (!r) accion = `<button class="btn sm sec" data-act="solicitar" data-id="${esc(u.id)}">${ic('plus')}Agregar</button>`;
   else if (r.estado === 'aceptada') accion = '<span class="pill ok">Amigos</span>';
-  else accion = r.de === E.yo ? '<span class="pill wait">Solicitud enviada</span>' : `<button class="btn sm" data-act="aceptar" data-id="${esc(u.id)}">Aceptar</button>`;
+  else accion = r.de === E.yo
+    ? `<span class="pill wait">Solicitud enviada</span><button class="btn sm ghost" data-act="cancelar" data-id="${esc(u.id)}">Cancelar</button>`
+    : `<button class="btn sm" data-act="aceptar" data-id="${esc(u.id)}">Aceptar</button><button class="btn sm ghost" data-act="rechazar" data-id="${esc(u.id)}">Rechazar</button>`;
   return `<div class="person">${avatar(u.id, u.nombre)}<div class="grow"><div class="nm">${esc(u.nombre)}</div><div class="small mute">@${esc(u.usuario)}</div></div>${accion}</div>`;
 }
 
