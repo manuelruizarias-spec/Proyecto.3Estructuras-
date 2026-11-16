@@ -5,6 +5,7 @@ const http = require('http'), fs = require('fs'), path = require('path'), crypto
 const { registrarUsuario } = require('./auditoria/registro');
 const { iniciarSesion } = require('./auditoria/login');
 const { protegerContrasena } = require('./auditoria/seguridad');
+const amistades = require('./amistades');
 
 const PORT = process.env.PORT || 3000;
 const DIR = path.join(__dirname, 'data'), PUB = path.join(__dirname, 'public');
@@ -91,18 +92,16 @@ function accion(me, b) {
             }); 
             break;
         }
-        case 'solicitar':
-            if (b.a === me || !U(b.a)) return 'Usuario inválido.';
-            if (rel(me, b.a)) return 'Ya existe una solicitud o amistad.';
-            // [CRIS] Ajuste: Se agrega 'fecha' a la solicitud
-            DB.amistades.push({ de: me, a: b.a, estado: 'pendiente', fecha: Date.now() }); 
+        // Amistades: la lógica vive en amistades.js; aquí solo se traduce
+        // el resultado { ok, error } al string de error que usa accion().
+        case 'solicitar': {
+            const r = amistades.solicitar(DB, me, b);
+            if (!r.ok) return r.error;
             break;
+        }
         case 'aceptar': {
-            const r = DB.amistades.find(x => x.de === b.de && x.a === me && x.estado === 'pendiente');
-            if (!r) return 'No hay solicitud pendiente.'; 
-            r.estado = 'aceptada';
-            // [CRIS] Ajuste: Se actualiza 'fecha' al aceptar
-            r.fecha = Date.now();
+            const r = amistades.aceptar(DB, me, b);
+            if (!r.ok) return r.error;
             break;
         }
         case 'crear-club': {
