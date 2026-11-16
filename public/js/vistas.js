@@ -140,7 +140,7 @@ function vistaDetalleClub(c) {
   const miembro = c.miembros.includes(E.yo), pubs = E.d.publicaciones.filter(p => p.clubId === c.id).sort((a, b) => b.fecha - a.fecha);
   return `<button class="btn sm ghost" data-act="abrirClub" data-id="">← Todos los clubes</button>
   <div class="card" style="margin:14px 0;padding:0;overflow:hidden"><div class="c0" style="height:70px"></div><div style="padding:18px"><div class="row sb wrap"><div><div class="row wrap"><h1 style="font-size:26px">${esc(c.nombre)}</h1><span class="pill">${esc(c.categoria)}</span></div><p class="mute" style="margin-top:6px;max-width:60ch">${esc(c.descripcion || '')}</p></div>
-  <button class="btn ${miembro ? 'sec' : ''}" data-act="unirse" data-id="${c.id}">${miembro ? 'Abandonar club' : 'Unirme al club'}</button></div>
+  <button class="btn ${miembro ? 'sec' : ''}" data-act="unirse" data-id="${c.id}">${miembro ? 'Abandonar club' : 'Unirme al club'}</button>${miembro && c.creador === E.yo ? `<span class="small mute" style="max-width:26ch">Como creador no puedes abandonar tu club. El servidor lo rechaza.</span>` : ''}</div>
   <h3 style="margin:16px 0 8px">Integrantes (${c.miembros.length})</h3><div class="members">${c.miembros.map(i => `<span>${avatar(i, nombreDe(i), 'xs')}${esc(nombreDe(i))}${i === c.creador ? ' <span class="pill" style="padding:0 7px">Creador</span>' : ''}</span>`).join('')}</div></div></div>
   <div class="stack"><h2>Tablón del club</h2>
   ${miembro ? cajaPublicar('club') : `<div class="locked">${ic('lock')}<div class="grow"><b>Solo los integrantes pueden publicar</b><div class="small mute">Únete al club para escribir en su tablón.</div></div></div>`}

@@ -51,6 +51,11 @@ function crearClub(baseDatos, me, datos) {
 /**
  * Alterna la membresía: une al usuario si no está y lo saca si está.
  *
+ * Excepción (regla del Sprint): el CREADOR no puede abandonar su club,
+ * así que se devuelve { ok:false, error: 'El creador no puede abandonar
+ * su club.' } y no se toca "miembros". La interfaz muestra ese mensaje
+ * en el toast de error.
+ *
  * Misma estructura que crearClub(): se reemplaza "miembros" con un arreglo
  * nuevo (filter o spread) en lugar de mutarlo con push/splice, porque así
  * nunca queda un miembro duplicado ni un hueco raro si la operación se
@@ -60,6 +65,13 @@ function toggleClub(baseDatos, me, datos) {
     const club = baseDatos.clubes.find(c => c.id === datos.id);
     if (!club) {
         return { ok: false, error: 'Club inexistente.', codigo: 400 };
+    }
+    // El creador responde por el club: si pudiera salir quedaría sin dueño
+    // (la etiqueta "Creador" apuntaría a alguien fuera del club) y hoy no
+    // existe forma de pasarle la creación a otro miembro. Solo se bloquea
+    // la SALIDA: si el creador ya no es miembro, puede volver a unirse.
+    if (club.creador === me && club.miembros.includes(me)) {
+        return { ok: false, error: 'El creador no puede abandonar su club.', codigo: 400 };
     }
     club.miembros = club.miembros.includes(me)
         ? club.miembros.filter(m => m !== me)
