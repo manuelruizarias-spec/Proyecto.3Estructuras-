@@ -23,9 +23,9 @@ for (const k of K) {
     catch { DB[k] = []; fs.writeFileSync(f, '[]'); }
 }
 
-// Último error de persistencia. accion() llama a guardar() y no puede recoger
-// su resultado (no se toca su lógica), así que el motivo se guarda aquí y lo
-// consulta el enrutador para responderle al cliente en español.
+// Último error de persistencia. Lo necesitan las rutas cuyo módulo llama a
+// guardar() sin poder recoger su resultado (registro desde auditoria/ y
+// seed()): aquí queda el motivo en español para responderle al cliente.
 let errorGuardado = null;
 
 // Escritura atómica en dos fases: primero se escriben TODOS los .tmp y luego
@@ -72,43 +72,17 @@ const estado = () => ({
     amistades: DB.amistades
 });
 
-// ---- Acciones sociales (Cris)
-function accion(me, b) {
-    switch (b.tipo) {
-        // Publicaciones: la lógica vive en publicaciones.js (S2-1)
-        case 'publicar': {
-            const r = publicaciones.publicar(DB, me, b);
-            if (!r.ok) return r.error;
-            break;
-        }
-        // Amistades: la lógica vive en amistades.js; aquí solo se traduce
-        // el resultado { ok, error } al string de error que usa accion().
-        case 'solicitar': {
-            const r = amistades.solicitar(DB, me, b);
-            if (!r.ok) return r.error;
-            break;
-        }
-        case 'aceptar': {
-            const r = amistades.aceptar(DB, me, b);
-            if (!r.ok) return r.error;
-            break;
-        }
-        // Clubes: la lógica vive en clubes.js (S2-2)
-        case 'crear-club': {
-            const r = clubes.crearClub(DB, me, b);
-            if (!r.ok) return r.error;
-            break;
-        }
-        case 'toggle-club': {
-            const r = clubes.toggleClub(DB, me, b);
-            if (!r.ok) return r.error;
-            break;
-        }
-        default: return 'Acción desconocida.';
-    }
-    guardar(); 
-    return null;
-}
+// ---- Acciones sociales (Cris): server.js no guarda lógica de negocio.
+// Cada "tipo" se resuelve en su módulo y aquí solo se traduce la respuesta
+// { ok, error?, codigo? } al formato de api.js: en fallo { error } con su
+// código (400 por defecto) y en éxito { ok: true }.
+const ACCIONES = {
+    'solicitar': amistades.solicitar,
+    'aceptar': amistades.aceptar,
+    'publicar': publicaciones.publicar,
+    'crear-club': clubes.crearClub,
+    'toggle-club': clubes.toggleClub
+};
 
 // ---- Grafo: la construcción de la lista de adyacencia vive en grafo.js (S3-1);
 // aquí server.js solo lo pide y traduce su respuesta.
@@ -263,12 +237,14 @@ http.createServer((req, res) => {
         if (!me) return json(res, 401, { error: 'Sesión no válida.' });
         
         if (url === '/api/estado') return json(res, 200, estado());
-        if (url === '/api/accion') { 
-            const e = accion(me, b); 
-            if (e) return json(res, 400, { error: e });
-            // guardar() falló dentro de accion(): aviso genérico, sin tocar accion()
-            if (errorGuardado) return json(res, 500, { error: errorGuardado });
-            return json(res, 200, { ok: true }); 
+        if (url === '/api/accion') {
+            const ejecutar = ACCIONES[b.tipo];
+            if (!ejecutar) return json(res, 400, { error: 'Acción desconocida.' });
+            const r = ejecutar(DB, me, b);            // módulo -> { ok, error?, codigo? }
+            if (!r.ok) return json(res, r.codigo || 400, { error: r.error });
+            const e = guardar();                      // solo se persiste si la acción fue válida
+            if (e) return json(res, 500, { error: e });
+            return json(res, 200, { ok: true });
         }
         if (url === '/api/grafo') {
             const g = grafo.construir(DB);
