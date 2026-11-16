@@ -63,8 +63,10 @@ const rel = (a, b) => DB.amistades.find(x => (x.de === a && x.a === b) || (x.de 
 const uid = () => crypto.randomBytes(4).toString('hex');
 const limpio = (s, n) => String(s || '').trim().slice(0, n);
 
+// Lo que ve el Frontend por /api/estado. Sin la identificación (cédula): la
+// interfaz no la muestra y no hace falta exponerla a todos los usuarios.
 const estado = () => ({
-    usuarios: DB.usuarios.map(({ id, identificacion, nombre, usuario }) => ({ id, identificacion, nombre, usuario })),
+    usuarios: DB.usuarios.map(({ id, nombre, usuario }) => ({ id, nombre, usuario })),
     clubes: DB.clubes, 
     publicaciones: DB.publicaciones, 
     amistades: DB.amistades
