@@ -60,7 +60,8 @@ const nuevaSesion = id => {
 };
 
 // ---- Helper de dominio: lo usa seed() para crear ids de ejemplo.
-// (U, C, rel, limpio y CATS se movieron a los módulos que los usan.)
+// (U, C, rel y CATS se movieron a los módulos que los usan; "limpio" ya no
+// existe: cada módulo valida el tipo, el vacío y el largo de sus textos.)
 const uid = () => crypto.randomBytes(4).toString('hex');
 
 // Lo que ve el Frontend por /api/estado. Sin la identificación (cédula): la
@@ -211,6 +212,11 @@ http.createServer((req, res) => {
         let b = {}; 
         try { b = raw ? JSON.parse(raw) : {}; } 
         catch { return json(res, 400, { error: 'JSON inválido' }); }
+        // Validación de tipos: el cuerpo debe ser un objeto JSON. null, una
+        // lista o un número no son parámetros válidos para ninguna ruta.
+        if (b === null || typeof b !== 'object' || Array.isArray(b)) {
+            return json(res, 400, { error: 'Datos inválidos.' });
+        }
         
         const url = req.url;
         errorGuardado = null; // estado limpio de guardado para esta petición
@@ -240,8 +246,13 @@ http.createServer((req, res) => {
         
         if (url === '/api/estado') return json(res, 200, estado());
         if (url === '/api/accion') {
+            // Object.hasOwn comprueba solo las claves de la tabla: sin él,
+            // {"tipo":"constructor"} o {"tipo":"__proto__"} devolverían algo
+            // que no es una función y romperían la petición.
+            if (typeof b.tipo !== 'string' || !Object.hasOwn(ACCIONES, b.tipo)) {
+                return json(res, 400, { error: 'Acción desconocida.' });
+            }
             const ejecutar = ACCIONES[b.tipo];
-            if (!ejecutar) return json(res, 400, { error: 'Acción desconocida.' });
             const r = ejecutar(DB, me, b);            // módulo -> { ok, error?, codigo? }
             if (!r.ok) return json(res, r.codigo || 400, { error: r.error });
             const e = guardar();                      // solo se persiste si la acción fue válida

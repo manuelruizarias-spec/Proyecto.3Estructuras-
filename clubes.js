@@ -10,7 +10,11 @@
 // --- Utilidades locales (sin dependencias con otros módulos).
 const crypto = require('crypto');
 const uid = () => crypto.randomBytes(4).toString('hex');
-const limpio = (s, n) => String(s || '').trim().slice(0, n);
+
+// Límites de texto: los mismos que impone el Frontend (inputs con
+// maxlength). Se comprueban aquí porque el Frontend se puede saltar o no
+// ser el único cliente del servidor.
+const MAX_NOMBRE = 60, MAX_DESCRIPCION = 140;
 
 // Categorías permitidas: son las mismas que usa el Frontend (ui.js) con la
 // misma grafía y mayúsculas, porque el filtro de la interfaz compara el texto
@@ -32,15 +36,37 @@ const CATS = ['Lectura', 'Fotografía', 'Manualidades', 'Videojuegos', 'Deportes
  *     usuarios.json, así no hay que convertir nada al cruzar datos.
  */
 function crearClub(baseDatos, me, datos) {
-    const nombre = limpio(datos.nombre, 60);
+    // 1) Tipo: el nombre debe ser TEXTO. En JSON puede llegar cualquier
+    //    cosa ("nombre": 123, null, un objeto) y eso no es un nombre.
+    if (typeof datos.nombre !== 'string') {
+        return { ok: false, error: 'Nombre inválido.', codigo: 400 };
+    }
+    // 2) Vacío y 3) largo máximo, medidos sobre el valor ya recortado,
+    //    igual que lo que quedará guardado.
+    const nombre = datos.nombre.trim();
     if (!nombre) {
         return { ok: false, error: 'El club necesita un nombre.', codigo: 400 };
+    }
+    if (nombre.length > MAX_NOMBRE) {
+        return { ok: false, error: `El nombre no puede superar los ${MAX_NOMBRE} caracteres.`, codigo: 400 };
+    }
+    // Campos opcionales: si vienen deben ser texto; la categoría además se
+    // normaliza a 'Otro' si no está en la lista (así siempre se puede filtrar).
+    if (datos.categoria !== undefined && datos.categoria !== null && typeof datos.categoria !== 'string') {
+        return { ok: false, error: 'Categoría inválida.', codigo: 400 };
+    }
+    if (datos.descripcion !== undefined && datos.descripcion !== null && typeof datos.descripcion !== 'string') {
+        return { ok: false, error: 'Descripción inválida.', codigo: 400 };
+    }
+    const descripcion = typeof datos.descripcion === 'string' ? datos.descripcion.trim() : '';
+    if (descripcion.length > MAX_DESCRIPCION) {
+        return { ok: false, error: `La descripción no puede superar los ${MAX_DESCRIPCION} caracteres.`, codigo: 400 };
     }
     const club = {
         id: uid(),
         nombre,
         categoria: CATS.includes(datos.categoria) ? datos.categoria : 'Otro',
-        descripcion: limpio(datos.descripcion, 140), // límite del Frontend: 140
+        descripcion,
         miembros: [me],
         creador: me
     };
@@ -62,6 +88,12 @@ function crearClub(baseDatos, me, datos) {
  * repite; el arreglo siempre se reconstruye desde cero.
  */
 function toggleClub(baseDatos, me, datos) {
+    // Id: debe ser TEXTO no vacío y el club debe EXISTIR. Un id de otro
+    // tipo (número, null) nunca coincide con ningún club, así que se
+    // responde con el mismo motivo que cuando el club no está.
+    if (typeof datos.id !== 'string' || !datos.id) {
+        return { ok: false, error: 'Club inexistente.', codigo: 400 };
+    }
     const club = baseDatos.clubes.find(c => c.id === datos.id);
     if (!club) {
         return { ok: false, error: 'Club inexistente.', codigo: 400 };

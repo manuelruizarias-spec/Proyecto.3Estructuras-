@@ -15,6 +15,12 @@ const existeUsuario = (baseDatos, id) => baseDatos.usuarios.some(u => u.id === i
 const relacion = (baseDatos, a, b) =>
     baseDatos.amistades.find(x => (x.de === a && x.a === b) || (x.de === b && x.a === a));
 
+// Un id de usuario válido: TEXTO no vacío y además existe en la base.
+// El tipo se comprueba antes de comparar porque en JSON el id puede llegar
+// como número, null u objeto ("a": 123) y eso nunca identifica a nadie.
+const usuarioValido = (baseDatos, id) =>
+    typeof id === 'string' && id.trim() !== '' && existeUsuario(baseDatos, id);
+
 /**
  * Envía una solicitud de amistad.
  *
@@ -28,7 +34,7 @@ const relacion = (baseDatos, a, b) =>
  * "hace 5 min" restando, igual que en las publicaciones.
  */
 function solicitar(baseDatos, me, datos) {
-    if (datos.a === me || !existeUsuario(baseDatos, datos.a)) {
+    if (!usuarioValido(baseDatos, datos.a) || datos.a === me) {
         return { ok: false, error: 'Usuario inválido.', codigo: 400 };
     }
     if (relacion(baseDatos, me, datos.a)) {
@@ -49,6 +55,9 @@ function solicitar(baseDatos, me, datos) {
  * sigue siendo única (imposible duplicar la amistad).
  */
 function aceptar(baseDatos, me, datos) {
+    if (!usuarioValido(baseDatos, datos.de)) {
+        return { ok: false, error: 'Usuario inválido.', codigo: 400 };
+    }
     const solicitud = baseDatos.amistades.find(
         x => x.de === datos.de && x.a === me && x.estado === 'pendiente'
     );
@@ -76,6 +85,9 @@ function aceptar(baseDatos, me, datos) {
  * motivo en español en lugar de borrar algo que no me pertenece.
  */
 function rechazar(baseDatos, me, datos) {
+    if (!usuarioValido(baseDatos, datos.de)) {
+        return { ok: false, error: 'Usuario inválido.', codigo: 400 };
+    }
     const i = baseDatos.amistades.findIndex(x => x.de === datos.de && x.a === me);
     if (i < 0) {
         // ¿Existe en el sentido contrario? Entonces yo soy el emisor.
@@ -104,6 +116,9 @@ function rechazar(baseDatos, me, datos) {
  * pasado nada (relacion() ya no encuentra registro).
  */
 function cancelar(baseDatos, me, datos) {
+    if (!usuarioValido(baseDatos, datos.a)) {
+        return { ok: false, error: 'Usuario inválido.', codigo: 400 };
+    }
     const i = baseDatos.amistades.findIndex(x => x.de === me && x.a === datos.a);
     if (i < 0) {
         // ¿Existe en el sentido contrario? Entonces yo soy el receptor.
