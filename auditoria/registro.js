@@ -52,9 +52,9 @@ function registrarUsuario(baseDatos, datos, guardar) {
         return { error: 'El nombre de usuario ya está registrado.', codigo: 409 };
     }
 
-    // 5. Validar contraseña
-    if (typeof contrasena !== 'string' || contrasena.length < 8 || contrasena.length > 128) {
-        return { error: 'La contraseña debe tener entre 8 y 128 caracteres.', codigo: 400 };
+    // 5. Validar contraseña 
+    if (typeof contrasena !== 'string' || contrasena.length < 4 || contrasena.length > 128) {
+        return { error: 'La contraseña debe tener entre 4 y 128 caracteres.', codigo: 400 };
     }
 
     // 6. Crear usuario
