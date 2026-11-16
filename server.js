@@ -161,8 +161,14 @@ function grafo() {
 }
 
 // ---- Datos semilla
+// Solo se siembra si data/usuarios.json está vacío (y la memoria también):
+// nunca se pisan usuarios reales ni el resto de los datos ya guardados.
 function seed() {
-    if (DB.usuarios.length) return 'Ya hay datos; vacía los archivos de data/ para recargar el ejemplo.';
+    let enDisco;
+    try { enDisco = JSON.parse(fs.readFileSync(path.join(DIR, 'usuarios.json'), 'utf8')); }
+    catch { enDisco = []; } // archivo ausente o ilegible: se trata como vacío
+    if (!Array.isArray(enDisco)) return 'data/usuarios.json no tiene un formato válido; revísalo antes de sembrar.';
+    if (enDisco.length || DB.usuarios.length) return 'Ya hay datos en data/usuarios.json; vacía ese archivo para recargar el ejemplo.';
     const h = protegerContrasena('1234');
     DB.usuarios = ['Ana', 'Luis', 'Marta', 'Diego'].map((n, i) => ({ 
         id: n.toLowerCase(), 
