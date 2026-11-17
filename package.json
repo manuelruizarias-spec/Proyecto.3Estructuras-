@@ -1,0 +1,14 @@
+{
+  "name": "una-connect",
+  "version": "1.0.0",
+  "description": "UNA Connect - red social universitaria de clubes y amistades",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node pruebas.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

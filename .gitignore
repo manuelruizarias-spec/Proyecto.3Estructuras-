@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+package-lock.json.bak
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variables de entorno (por si luego agregan .env)
+.env
+.env.local
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporales
+*.tmp
+*.bak
+.cache/

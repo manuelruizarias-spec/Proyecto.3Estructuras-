@@ -95,8 +95,8 @@ async function crearClub() {
   const r = await conCarga(document.getElementById('btnClub'), 'Creando…', () => Api.accion({ tipo: 'crear-club', nombre, categoria: document.getElementById('cc').value, descripcion: valorCampo('cds') }));
   if (!r.ok) { document.getElementById('avisoClub').innerHTML = bannerError(r.error); return; }
   await refrescar();
-  const nuevo = E.d.clubes.filter(c => c.creador === E.yo && c.nombre === nombre).pop(); // el servidor no devuelve el id del club creado
-  E.club = nuevo ? nuevo.id : null; E.ctab = 'explorar'; pintar(); toast('Club creado');
+  E.club = r.datos.id || null; // el servidor devuelve el id del club creado
+  E.ctab = 'explorar'; pintar(); toast('Club creado');
 }
 
 // ---------- Clics (delegación de eventos) ----------
@@ -110,6 +110,8 @@ document.addEventListener('click', async e => {
   else if (a === 'tab') { E.tab = id; E.club = null; E.borrador = ''; pintar(); window.scrollTo(0, 0); }
   else if (a === 'solicitar') { const r = await ejecutar({ tipo: 'solicitar', a: id }, 'Solicitud enviada a ' + nombreDe(id)); }
   else if (a === 'aceptar') await ejecutar({ tipo: 'aceptar', de: id }, 'Ahora eres amigo de ' + nombreDe(id));
+  else if (a === 'rechazar') await ejecutar({ tipo: 'rechazar', de: id }, 'Solicitud de ' + nombreDe(id) + ' rechazada');
+  else if (a === 'cancelar') await ejecutar({ tipo: 'cancelar', a: id }, 'Solicitud cancelada a ' + nombreDe(id));
   else if (a === 'publicar') publicar(id);
   else if (a === 'ctab') { E.ctab = id; E.club = null; E.borrador = ''; pintar(); }
   else if (a === 'categoria') { E.cat = id; pintar(); }

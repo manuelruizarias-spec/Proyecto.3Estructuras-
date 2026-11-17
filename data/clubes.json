@@ -1,0 +1,47 @@
+[
+  {
+    "id": "c1",
+    "nombre": "Club de Lectura",
+    "categoria": "Lectura",
+    "descripcion": "Un libro al mes",
+    "miembros": [
+      "ana",
+      "marta"
+    ],
+    "creador": "ana"
+  },
+  {
+    "id": "c2",
+    "nombre": "FotoUNA",
+    "categoria": "Fotografía",
+    "descripcion": "Salidas fotográficas por el campus",
+    "miembros": [
+      "luis",
+      "ana",
+      "diego"
+    ],
+    "creador": "luis"
+  },
+  {
+    "id": "c3",
+    "nombre": "Gamers UNA",
+    "categoria": "Videojuegos",
+    "descripcion": "Torneos y noches de juegos",
+    "miembros": [
+      "luis",
+      "ana"
+    ],
+    "creador": "diego"
+  },
+  {
+    "id": "e0ed22a6",
+    "nombre": "Cine Foro UNA",
+    "categoria": "Otro",
+    "descripcion": "",
+    "miembros": [
+      "ana",
+      "cga"
+    ],
+    "creador": "ana"
+  }
+]
